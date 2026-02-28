@@ -1,0 +1,141 @@
+name: package-docx-toolbox
+
+on:
+  workflow_dispatch:
+    inputs:
+      app:
+        description: Target app to package
+        required: true
+        default: all
+        type: choice
+        options:
+          - all
+          - pyside6
+          - pyqt6
+          - tk
+          - flet
+          - pywebview
+      include_pyqt6:
+        description: Include pyqt6 build (internal evaluation only)
+        required: true
+        default: false
+        type: boolean
+  push:
+    tags:
+      - "v*"
+
+permissions:
+  contents: read
+
+jobs:
+  lint_and_tests:
+    name: Lint and tests
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: docx-toolbox
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -e ".[dev]"
+
+      - name: Run unit tests
+        run: python -m pytest tests -q
+
+  package:
+    name: Package ${{ matrix.app }} on ${{ matrix.os }}
+    needs: lint_and_tests
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [macos-14, windows-2022]
+        app: [pyside6, tk, flet, pywebview, pyqt6]
+    if: >
+      (matrix.app != 'pyqt6' || (github.event_name == 'workflow_dispatch' && inputs.include_pyqt6)) &&
+      (github.event_name != 'workflow_dispatch' || inputs.app == 'all' || inputs.app == matrix.app)
+    defaults:
+      run:
+        working-directory: docx-toolbox
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Install dependencies for selected app
+        shell: bash
+        run: |
+          python -m pip install --upgrade pip
+          case "${{ matrix.app }}" in
+            pyside6)
+              pip install -e ".[pyside6,dev]"
+              ;;
+            pyqt6)
+              pip install -e ".[pyqt6,dev]"
+              ;;
+            flet)
+              pip install -e ".[flet,dev]"
+              ;;
+            pywebview)
+              pip install -e ".[pywebview,dev]"
+              ;;
+            tk)
+              pip install -e ".[dev]"
+              ;;
+            *)
+              echo "Unsupported app: ${{ matrix.app }}"
+              exit 1
+              ;;
+          esac
+
+      - name: Setup Node.js
+        if: matrix.app == 'pywebview'
+        uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+          cache: "npm"
+          cache-dependency-path: docx-toolbox/pywebview/frontend/package-lock.json
+
+      - name: Build pywebview frontend
+        if: matrix.app == 'pywebview'
+        working-directory: docx-toolbox/pywebview/frontend
+        run: |
+          npm ci
+          npm run build
+
+      - name: Resolve artifact version
+        id: version
+        shell: bash
+        run: |
+          if [[ "${GITHUB_REF_TYPE:-}" == "tag" ]]; then
+            echo "value=${GITHUB_REF_NAME}" >> "$GITHUB_OUTPUT"
+          else
+            echo "value=dev-${GITHUB_SHA::7}" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Package desktop app
+        run: |
+          python scripts/package_app.py \
+            --app "${{ matrix.app }}" \
+            --version "${{ steps.version.outputs.value }}" \
+            --output-dir artifacts
+
+      - name: Upload artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: ${{ matrix.app }}-${{ runner.os }}-${{ runner.arch }}-${{ steps.version.outputs.value }}
+          path: docx-toolbox/artifacts/*.zip
+          if-no-files-found: error

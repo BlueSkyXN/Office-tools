@@ -1,0 +1,108 @@
+# ------------------------------
+# OS / Editor
+# ------------------------------
+.DS_Store
+Thumbs.db
+.idea/
+.vscode/
+*.swp
+*.swo
+*~
+
+# ------------------------------
+# Local-only files
+# ------------------------------
+CLAUDE.md
+/local/
+/docx-toolbox/local/
+/docx-toolbox/docs/
+/docx-toolbox/DESIGN.md
+/docx-toolbox/SUB-DESIGNS.md
+/docx-toolbox/**/DESIGN.md
+.env
+.env.*
+!.env.example
+*.local
+
+# ------------------------------
+# Python
+# ------------------------------
+__pycache__/
+*.py[cod]
+*$py.class
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+.pyre/
+.hypothesis/
+.tox/
+.nox/
+
+# Python virtual environments
+.venv/
+venv/
+env/
+ENV/
+
+# Python build / package artifacts
+build/
+dist/
+site/
+.eggs/
+*.egg-info/
+pip-wheel-metadata/
+*.whl
+
+# Python test / coverage reports
+.coverage
+.coverage.*
+htmlcov/
+coverage.xml
+junit*.xml
+
+# ------------------------------
+# Node / Frontend
+# ------------------------------
+node_modules/
+.npm/
+.pnpm-store/
+.yarn/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+*.tsbuildinfo
+
+# Frontend build caches/artifacts
+.parcel-cache/
+.next/
+.nuxt/
+.svelte-kit/
+
+# pywebview frontend outputs
+/docx-toolbox/pywebview/frontend/dist/
+/docx-toolbox/pywebview/frontend/.vite/
+/docx-toolbox/pywebview/frontend/.cache/
+
+# ------------------------------
+# Packaging / release artifacts
+# ------------------------------
+*.exe
+*.msi
+*.dmg
+*.pkg
+*.deb
+*.rpm
+*.AppImage
+
+# macOS .app bundle directories from packaging
+*.app/
+*.spec
+
+# ------------------------------
+# Runtime logs / temp
+# ------------------------------
+*.log
+logs/
+tmp/
+temp/
