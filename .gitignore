@@ -79,11 +79,6 @@ pnpm-debug.log*
 .nuxt/
 .svelte-kit/
 
-# pywebview frontend outputs
-/docx-toolbox/pywebview/frontend/dist/
-/docx-toolbox/pywebview/frontend/.vite/
-/docx-toolbox/pywebview/frontend/.cache/
-
 # ------------------------------
 # Packaging / release artifacts
 # ------------------------------

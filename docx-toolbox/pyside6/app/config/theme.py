@@ -1,4 +1,4 @@
-"""QSS theme with semantic tokens — OpenAI light style (DESIGN.md §5)"""
+"""QSS theme with semantic tokens — OpenAI light style."""
 
 # Semantic color tokens
 COLORS = {

@@ -1,5 +1,13 @@
 # Changelog
 
+## [0.1.2] - 2026-02-28
+
+### Changed
+
+- 项目 GUI 路线收敛为 `pyside6`，移除 `flet` 与 `pywebview` 代码与打包流程
+- GitHub Actions 仅保留 `/.github/workflows/package-docx-pyside6.yml`
+- 打包脚本 `scripts/package_app.py` 仅支持 `--app pyside6`
+
 ## [0.1.1] - 2026-02-28
 
 ### Added
@@ -14,7 +22,7 @@
 - `excel_allinone` 适配器改为“单文件失败记失败并继续”，不再中断整批任务
 - `TaskService` 去除锁外写入，统一在锁内更新 `_tasks` 和 `TaskRecord` 状态
 - 根 `.gitignore` 补齐 PyInstaller `*.spec` 忽略规则
-- 移除 `pyqt6` 与 `tk` 两条 GUI 路线，仅保留 `pyside6/flet/pywebview`
+- 移除 `pyqt6` 与 `tk` 两条 GUI 路线（该版本仍保留 `pyside6/flet/pywebview`）
 
 ### Fixed
 

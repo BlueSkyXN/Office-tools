@@ -1,6 +1,6 @@
 # docx-toolbox
 
-统一的文档工具箱工程，包含共享内核 + 3 个 GUI 框架子项目 + 参考脚本。
+统一的文档工具箱工程，包含共享内核 + `pyside6` GUI 子项目 + 参考脚本。
 
 ## 功能
 
@@ -11,19 +11,16 @@
 ## 快速开始
 
 ```bash
-# 安装基础依赖
 cd docx-toolbox
+
+# 安装基础依赖
 pip install -e .
 
-# 安装特定 GUI 框架依赖
-pip install -e ".[pyside6]"   # 生产默认
-pip install -e ".[flet]"      # Flet 方案
-pip install -e ".[pywebview]" # React + pywebview 方案
+# 安装 GUI 依赖（PySide6）
+pip install -e ".[pyside6]"
 
 # 启动 GUI
-python3 -m pyside6.app.main   # PySide6（生产默认）
-python3 flet/app/main.py       # Flet
-python3 pywebview/backend/app.py  # pywebview
+python3 -m pyside6.app.main
 
 # 运行测试
 python3 -m pytest tests/ -v
@@ -31,7 +28,7 @@ python3 -m pytest tests/ -v
 
 ## 目录结构
 
-```
+```text
 docx-toolbox/
   core/                    # 共享内核（适配器、执行器、错误码、日志）
     adapters/              #   三类任务适配器
@@ -40,24 +37,18 @@ docx-toolbox/
     logging_utils/         #   统一日志模块
     api.py                 #   调度入口（run_task）
   references/              # 参考脚本（docx-allinone / 图片分离 / 表格提取）
-  pyside6/                 # PySide6 子项目（生产默认）
-  flet/                    # Flet 子项目（现代 Python UI）
-  pywebview/               # React + pywebview 子项目（Web 技术栈）
-    frontend/              #   React + Vite + TypeScript
-    backend/               #   Python pywebview 后端
+  pyside6/                 # GUI 子项目
   tests/                   # 共享内核测试
   pyproject.toml           # 项目依赖与构建配置
   CORE-INTERFACE.md        # 跨项目共享接口规范
-  DESIGN.md                # 主设计文档
 ```
 
 ## 架构
 
-```
+```text
 ┌─────────────────────────────────────────────┐
-│              GUI 子项目                      │
-│     pyside6     │    flet    │  pywebview  │
-│   app/core/adapter.py (参数适配层)           │
+│               pyside6 GUI                    │
+│            app/core/adapter.py               │
 ├─────────────────────────────────────────────┤
 │              core/ 共享内核                   │
 │  api.run_task() → adapters → references     │
@@ -72,37 +63,23 @@ docx-toolbox/
 
 ## 统一约束
 
-- 所有子项目通过 `core/` 共享内核调用业务能力，禁止直接调用参考脚本
+- 所有 GUI 调用通过 `core/` 共享内核，禁止直接调用参考脚本
 - 接口规范：[`CORE-INTERFACE.md`](./CORE-INTERFACE.md)
 
 ## 当前决策
 
-- 生产默认路线：`pyside6`
-- 保留方案：`pyside6` / `flet` / `pywebview`
-
-## 依赖管理
-
-- 根级 `pyproject.toml` 维护统一依赖基线
-- `core/` 作为共享包，各子项目通过路径导入
-- GUI 框架依赖通过 optional-dependencies 按需安装
+- 唯一 GUI 路线：`pyside6`
 
 ## GitHub Actions 打包
 
 - 双平台打包：macOS arm64 + Windows x64
 - 策略详见：[`docs/GITHUB-ACTIONS-PACKAGING.md`](./docs/GITHUB-ACTIONS-PACKAGING.md)
-- 已落地 workflow：[`../.github/workflows/package-docx-all.yml`](../.github/workflows/package-docx-all.yml)
+- 已落地 workflow：[`../.github/workflows/package-docx-pyside6.yml`](../.github/workflows/package-docx-pyside6.yml)
 
 ## 本地打包（PyInstaller）
 
 ```bash
 cd docx-toolbox
-
-# 例：打包 pyside6
-python3 scripts/package_app.py --app pyside6 --version dev-local
-
-# 例：打包 pywebview（需先构建前端）
-cd pywebview/frontend && npm ci && npm run build && cd ../..
-python3 scripts/package_app.py --app pywebview --version dev-local
 
 # 默认 auto：macOS 输出 onedir + .app（双击无终端），其他平台输出 onefile
 python3 scripts/package_app.py --app pyside6 --version dev-local

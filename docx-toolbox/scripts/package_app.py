@@ -17,14 +17,6 @@ APP_CONFIG: dict[str, dict[str, object]] = {
         "entry": Path("pyside6/app/main.py"),
         "hidden_imports": [],
     },
-    "flet": {
-        "entry": Path("flet/app/main.py"),
-        "hidden_imports": ["flet"],
-    },
-    "pywebview": {
-        "entry": Path("pywebview/backend/app.py"),
-        "hidden_imports": ["webview"],
-    },
 }
 BUNDLE_MODES = ("auto", "onefile", "onedir")
 
@@ -63,6 +55,22 @@ def _zip_path(source: Path, target_zip: Path) -> None:
     target_zip.parent.mkdir(parents=True, exist_ok=True)
     if target_zip.exists():
         target_zip.unlink()
+
+    # macOS .app bundles rely on symlink-heavy .framework layouts.
+    # Use `ditto` to preserve Finder-compatible bundle structure.
+    if sys.platform.startswith("darwin"):
+        subprocess.check_call(
+            [
+                "ditto",
+                "-c",
+                "-k",
+                "--sequesterRsrc",
+                "--keepParent",
+                str(source),
+                str(target_zip),
+            ]
+        )
+        return
 
     with zipfile.ZipFile(target_zip, "w", compression=zipfile.ZIP_DEFLATED) as zf:
         if source.is_file():
@@ -131,15 +139,6 @@ def package_app(
     add_data: list[tuple[Path, str]] = [
         (root / "references", "references"),
     ]
-    if app == "pywebview":
-        frontend_dist = root / "pywebview" / "frontend" / "dist"
-        index_html = frontend_dist / "index.html"
-        if not index_html.is_file():
-            raise FileNotFoundError(
-                "pywebview frontend build not found. Run `npm ci && npm run build` in "
-                "pywebview/frontend first."
-            )
-        add_data.append((frontend_dist, "pywebview/frontend/dist"))
 
     # macOS onefile + --windowed is deprecated (PyInstaller 7.0 will block it).
     # Keep onefile as console-style binary on macOS; use --windowed for onedir to

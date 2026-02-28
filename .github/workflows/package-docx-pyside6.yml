@@ -6,8 +6,11 @@ on:
     branches: [main, dev]
     paths:
       - "docx-toolbox/core/**"
+      - "docx-toolbox/references/**"
       - "docx-toolbox/pyproject.toml"
+      - "docx-toolbox/requirements.txt"
       - "docx-toolbox/pyside6/**"
+      - "docx-toolbox/scripts/package_app.py"
       - ".github/workflows/package-docx-pyside6.yml"
     tags:
       - "v*"
