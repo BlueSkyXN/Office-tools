@@ -1,6 +1,6 @@
 # docx-toolbox
 
-统一的文档工具箱工程，包含共享内核 + 5 个 GUI 框架子项目 + 参考脚本。
+统一的文档工具箱工程，包含共享内核 + 3 个 GUI 框架子项目 + 参考脚本。
 
 ## 功能
 
@@ -22,8 +22,6 @@ pip install -e ".[pywebview]" # React + pywebview 方案
 
 # 启动 GUI
 python3 -m pyside6.app.main   # PySide6（生产默认）
-python3 -m pyqt6.app.main     # PyQt6（内部评估）
-python3 -m tk.app.main         # Tkinter
 python3 flet/app/main.py       # Flet
 python3 pywebview/backend/app.py  # pywebview
 
@@ -43,8 +41,6 @@ docx-toolbox/
     api.py                 #   调度入口（run_task）
   references/              # 参考脚本（docx-allinone / 图片分离 / 表格提取）
   pyside6/                 # PySide6 子项目（生产默认）
-  pyqt6/                   # PyQt6 子项目（内部评估）
-  tk/                      # Tkinter 子项目（轻量方案）
   flet/                    # Flet 子项目（现代 Python UI）
   pywebview/               # React + pywebview 子项目（Web 技术栈）
     frontend/              #   React + Vite + TypeScript
@@ -60,7 +56,7 @@ docx-toolbox/
 ```
 ┌─────────────────────────────────────────────┐
 │              GUI 子项目                      │
-│  pyside6 │ pyqt6 │ tk │ flet │ pywebview   │
+│     pyside6     │    flet    │  pywebview  │
 │   app/core/adapter.py (参数适配层)           │
 ├─────────────────────────────────────────────┤
 │              core/ 共享内核                   │
@@ -78,12 +74,11 @@ docx-toolbox/
 
 - 所有子项目通过 `core/` 共享内核调用业务能力，禁止直接调用参考脚本
 - 接口规范：[`CORE-INTERFACE.md`](./CORE-INTERFACE.md)
-- PyQt6 许可：[`docs/PYQT6-LICENSE-POLICY.md`](./docs/PYQT6-LICENSE-POLICY.md)
 
 ## 当前决策
 
 - 生产默认路线：`pyside6`
-- `pyqt6` 路线：仅内部评估与对比，不做外部分发
+- 保留方案：`pyside6` / `flet` / `pywebview`
 
 ## 依赖管理
 
@@ -95,7 +90,7 @@ docx-toolbox/
 
 - 双平台打包：macOS arm64 + Windows x64
 - 策略详见：[`docs/GITHUB-ACTIONS-PACKAGING.md`](./docs/GITHUB-ACTIONS-PACKAGING.md)
-- 已落地 workflow：[`../.github/workflows/package-docx-toolbox.yml`](../.github/workflows/package-docx-toolbox.yml)
+- 已落地 workflow：[`../.github/workflows/package-docx-all.yml`](../.github/workflows/package-docx-all.yml)
 
 ## 本地打包（PyInstaller）
 
@@ -109,6 +104,9 @@ python3 scripts/package_app.py --app pyside6 --version dev-local
 cd pywebview/frontend && npm ci && npm run build && cd ../..
 python3 scripts/package_app.py --app pywebview --version dev-local
 
-# 默认 auto：所有平台统一输出单文件（onefile），macOS 不使用 --windowed 以规避 PyInstaller 7.0 弃用
+# 默认 auto：macOS 输出 onedir + .app（双击无终端），其他平台输出 onefile
+python3 scripts/package_app.py --app pyside6 --version dev-local
+
+# 若你明确需要 macOS 单文件可执行（会以终端进程形式运行）
 python3 scripts/package_app.py --app pyside6 --bundle-mode onefile --version dev-local
 ```

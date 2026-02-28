@@ -4,7 +4,7 @@
 
 ### Added
 
-- GitHub Actions 实际打包工作流：`/.github/workflows/package-docx-toolbox.yml`
+- GitHub Actions 实际打包工作流：`/.github/workflows/package-docx-all.yml`
 - 新增统一打包脚本：`scripts/package_app.py`
 
 ### Changed
@@ -14,6 +14,7 @@
 - `excel_allinone` 适配器改为“单文件失败记失败并继续”，不再中断整批任务
 - `TaskService` 去除锁外写入，统一在锁内更新 `_tasks` 和 `TaskRecord` 状态
 - 根 `.gitignore` 补齐 PyInstaller `*.spec` 忽略规则
+- 移除 `pyqt6` 与 `tk` 两条 GUI 路线，仅保留 `pyside6/flet/pywebview`
 
 ### Fixed
 

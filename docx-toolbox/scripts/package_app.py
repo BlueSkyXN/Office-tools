@@ -17,14 +17,6 @@ APP_CONFIG: dict[str, dict[str, object]] = {
         "entry": Path("pyside6/app/main.py"),
         "hidden_imports": [],
     },
-    "pyqt6": {
-        "entry": Path("pyqt6/app/main.py"),
-        "hidden_imports": [],
-    },
-    "tk": {
-        "entry": Path("tk/app/main.py"),
-        "hidden_imports": [],
-    },
     "flet": {
         "entry": Path("flet/app/main.py"),
         "hidden_imports": ["flet"],
@@ -61,6 +53,9 @@ def _arch_label() -> str:
 def _resolve_bundle_mode(bundle_mode: str) -> str:
     if bundle_mode != "auto":
         return bundle_mode
+    # Prefer .app UX on macOS by default (double-click without Terminal popup).
+    if sys.platform.startswith("darwin"):
+        return "onedir"
     return "onefile"
 
 
@@ -81,11 +76,20 @@ def _zip_path(source: Path, target_zip: Path) -> None:
 
 
 def _resolve_bundle_output(dist_root: Path, bundle_name: str) -> Path:
-    candidates = [
-        dist_root / bundle_name,
-        dist_root / f"{bundle_name}.exe",
-        dist_root / f"{bundle_name}.app",
-    ]
+    # On macOS onedir+windowed can produce both "{name}" and "{name}.app".
+    # Prefer the GUI bundle when available.
+    if sys.platform.startswith("darwin"):
+        candidates = [
+            dist_root / f"{bundle_name}.app",
+            dist_root / bundle_name,
+            dist_root / f"{bundle_name}.exe",
+        ]
+    else:
+        candidates = [
+            dist_root / bundle_name,
+            dist_root / f"{bundle_name}.exe",
+            dist_root / f"{bundle_name}.app",
+        ]
     for candidate in candidates:
         if candidate.exists():
             return candidate
@@ -138,8 +142,11 @@ def package_app(
         add_data.append((frontend_dist, "pywebview/frontend/dist"))
 
     # macOS onefile + --windowed is deprecated (PyInstaller 7.0 will block it).
-    # Drop --windowed on macOS to produce a plain POSIX binary instead of .app bundle.
-    use_windowed = not sys.platform.startswith("darwin")
+    # Keep onefile as console-style binary on macOS; use --windowed for onedir to
+    # produce a Finder-friendly .app bundle.
+    use_windowed = not (
+        sys.platform.startswith("darwin") and effective_bundle_mode == "onefile"
+    )
 
     cmd = [
         sys.executable,
@@ -187,7 +194,10 @@ def main() -> int:
         "--bundle-mode",
         choices=BUNDLE_MODES,
         default="auto",
-        help="PyInstaller bundle mode (default: auto = onefile on all platforms).",
+        help=(
+            "PyInstaller bundle mode (default: auto = onedir on macOS, onefile on "
+            "other platforms)."
+        ),
     )
     args = parser.parse_args()
 

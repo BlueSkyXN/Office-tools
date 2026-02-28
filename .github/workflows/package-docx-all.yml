@@ -51,7 +51,7 @@ jobs:
       - name: Install dependencies
         run: |
           python -m pip install --upgrade pip
-          pip install -e ".[pyside6,pyqt6,flet,pywebview,dev]"
+          pip install -e ".[pyside6,flet,pywebview,dev]"
 
       - uses: actions/setup-node@v4
         with:
@@ -77,7 +77,7 @@ jobs:
       - name: Package all desktop apps
         run: |
           set -euo pipefail
-          for app in tk flet pyqt6 pyside6 pywebview; do
+          for app in flet pyside6 pywebview; do
             python scripts/package_app.py \
               --app "$app" \
               --version "${{ steps.version.outputs.value }}" \
