@@ -22,6 +22,7 @@ jobs:
     defaults:
       run:
         working-directory: docx-toolbox
+        shell: bash
     steps:
       - uses: actions/checkout@v4
 
