@@ -3,8 +3,13 @@
 import sys
 from pathlib import Path
 
-# 将 docx-toolbox 根目录加入 sys.path，以便导入 core
-sys.path.insert(0, str(Path(__file__).resolve().parent.parent.parent))
+# 将 docx-toolbox 根目录与 pywebview 根目录加入 sys.path
+# 这样在从 `docx-toolbox` 根目录直接运行 `python3 pywebview/backend/app.py` 时，
+# 既能导入 core，也能导入 backend 包。
+backend_root = Path(__file__).resolve().parent.parent
+project_root = backend_root.parent
+sys.path.insert(0, str(project_root))
+sys.path.insert(0, str(backend_root))
 
 import webview
 

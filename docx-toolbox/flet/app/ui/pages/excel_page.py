@@ -18,8 +18,8 @@ class ExcelPage(ft.Column):
         self._page = page
 
         # 文件选择
-        self._file_picker = ft.FilePicker(on_result=self._on_file_picked)
-        page.overlay.append(self._file_picker)
+        self._file_picker = ft.FilePicker()
+        page.services.append(self._file_picker)
         self._input_field = ft.TextField(label="输入文件 (.docx)", expand=True, read_only=True)
         self._output_field = ft.TextField(label="输出目录（留空则同目录）", expand=True)
 
@@ -46,9 +46,7 @@ class ExcelPage(ft.Column):
             ft.Divider(height=1),
             ft.Row([
                 self._input_field,
-                ft.ElevatedButton("选择文件", icon=ft.Icons.FOLDER_OPEN, on_click=lambda _: self._file_picker.pick_files(
-                    allowed_extensions=["docx"], dialog_title="选择 DOCX 文件"
-                )),
+                ft.ElevatedButton("选择文件", icon=ft.Icons.FOLDER_OPEN, on_click=self._on_pick_file),
             ]),
             self._output_field,
             ft.Text("处理选项", size=14, weight=ft.FontWeight.W_600),
@@ -59,9 +57,15 @@ class ExcelPage(ft.Column):
             self._progress,
         ]
 
-    def _on_file_picked(self, e: ft.FilePickerResultEvent) -> None:
-        if e.files:
-            self._input_field.value = e.files[0].path
+    async def _on_pick_file(self, _: ft.ControlEvent) -> None:
+        files = await self._file_picker.pick_files(
+            dialog_title="选择 DOCX 文件",
+            file_type=ft.FilePickerFileType.CUSTOM,
+            allowed_extensions=["docx"],
+            allow_multiple=False,
+        )
+        if files and files[0].path:
+            self._input_field.value = files[0].path
             self._page.update()
 
     def _gather_options(self) -> dict:

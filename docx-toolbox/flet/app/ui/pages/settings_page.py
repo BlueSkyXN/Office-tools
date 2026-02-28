@@ -16,8 +16,8 @@ class SettingsPage(ft.Column):
         self._page = page
 
         # 输出目录
-        self._dir_picker = ft.FilePicker(on_result=self._on_dir_picked)
-        page.overlay.append(self._dir_picker)
+        self._dir_picker = ft.FilePicker()
+        page.services.append(self._dir_picker)
         self._output_dir_field = ft.TextField(
             label="默认输出目录",
             value=settings.default_output_dir,
@@ -44,9 +44,7 @@ class SettingsPage(ft.Column):
             ft.Text("默认输出目录", size=14, weight=ft.FontWeight.W_600),
             ft.Row([
                 self._output_dir_field,
-                ft.ElevatedButton("选择", icon=ft.Icons.FOLDER, on_click=lambda _: self._dir_picker.get_directory_path(
-                    dialog_title="选择默认输出目录"
-                )),
+                ft.ElevatedButton("选择", icon=ft.Icons.FOLDER, on_click=self._on_pick_directory),
             ]),
             ft.Divider(height=1),
             ft.Text("并发设置", size=14, weight=ft.FontWeight.W_600),
@@ -56,9 +54,10 @@ class SettingsPage(ft.Column):
             self._btn_save,
         ]
 
-    def _on_dir_picked(self, e: ft.FilePickerResultEvent) -> None:
-        if e.path:
-            self._output_dir_field.value = e.path
+    async def _on_pick_directory(self, _: ft.ControlEvent) -> None:
+        directory = await self._dir_picker.get_directory_path(dialog_title="选择默认输出目录")
+        if directory:
+            self._output_dir_field.value = directory
             self._page.update()
 
     def _on_worker_change(self, _: ft.ControlEvent) -> None:

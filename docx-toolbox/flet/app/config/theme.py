@@ -20,7 +20,7 @@ def create_theme() -> ft.Theme:
         color_scheme=ft.ColorScheme(
             primary=COLOR_PRIMARY,
             surface=COLOR_SURFACE,
-            background=COLOR_BACKGROUND,
+            surface_container_lowest=COLOR_BACKGROUND,
             outline=COLOR_OUTLINE,
             on_surface=COLOR_ON_SURFACE,
             error=COLOR_ERROR,

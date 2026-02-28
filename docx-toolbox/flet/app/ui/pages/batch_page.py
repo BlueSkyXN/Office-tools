@@ -31,8 +31,8 @@ class BatchPage(ft.Column):
         self._files: list[str] = []
 
         # 文件夹选择
-        self._folder_picker = ft.FilePicker(on_result=self._on_folder_picked)
-        page.overlay.append(self._folder_picker)
+        self._folder_picker = ft.FilePicker()
+        page.services.append(self._folder_picker)
         self._folder_field = ft.TextField(label="输入文件夹", expand=True, read_only=True)
         self._output_field = ft.TextField(label="输出目录（留空则同目录）", expand=True)
 
@@ -70,9 +70,7 @@ class BatchPage(ft.Column):
             ft.Divider(height=1),
             ft.Row([
                 self._folder_field,
-                ft.ElevatedButton("选择文件夹", icon=ft.Icons.FOLDER, on_click=lambda _: self._folder_picker.get_directory_path(
-                    dialog_title="选择包含 DOCX 文件的文件夹"
-                )),
+                ft.ElevatedButton("选择文件夹", icon=ft.Icons.FOLDER, on_click=self._on_pick_folder),
             ]),
             ft.Row([self._task_dropdown, self._output_field]),
             ft.Container(content=self._data_table, expand=True, border=ft.border.all(1, "#E5E7EB"), border_radius=8, padding=8),
@@ -80,10 +78,13 @@ class BatchPage(ft.Column):
             ft.Row([self._btn_start, self._btn_stop]),
         ]
 
-    def _on_folder_picked(self, e: ft.FilePickerResultEvent) -> None:
-        if e.path:
-            self._folder_field.value = e.path
-            self._scan_files(e.path)
+    async def _on_pick_folder(self, _: ft.ControlEvent) -> None:
+        folder = await self._folder_picker.get_directory_path(
+            dialog_title="选择包含 DOCX 文件的文件夹"
+        )
+        if folder:
+            self._folder_field.value = folder
+            self._scan_files(folder)
             self._page.update()
 
     def _scan_files(self, folder: str) -> None:
