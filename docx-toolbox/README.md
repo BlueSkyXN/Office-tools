@@ -108,4 +108,7 @@ python3 scripts/package_app.py --app pyside6 --version dev-local
 # 例：打包 pywebview（需先构建前端）
 cd pywebview/frontend && npm ci && npm run build && cd ../..
 python3 scripts/package_app.py --app pywebview --version dev-local
+
+# 默认 auto：所有平台统一输出单文件（onefile），macOS 不使用 --windowed 以规避 PyInstaller 7.0 弃用
+python3 scripts/package_app.py --app pyside6 --bundle-mode onefile --version dev-local
 ```

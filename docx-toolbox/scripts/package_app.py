@@ -34,6 +34,7 @@ APP_CONFIG: dict[str, dict[str, object]] = {
         "hidden_imports": ["webview"],
     },
 }
+BUNDLE_MODES = ("auto", "onefile", "onedir")
 
 
 def _data_separator() -> str:
@@ -57,6 +58,12 @@ def _arch_label() -> str:
     return machine or "unknown"
 
 
+def _resolve_bundle_mode(bundle_mode: str) -> str:
+    if bundle_mode != "auto":
+        return bundle_mode
+    return "onefile"
+
+
 def _zip_path(source: Path, target_zip: Path) -> None:
     target_zip.parent.mkdir(parents=True, exist_ok=True)
     if target_zip.exists():
@@ -73,9 +80,33 @@ def _zip_path(source: Path, target_zip: Path) -> None:
                 zf.write(item, arcname)
 
 
-def package_app(app: str, root: Path, output_dir: Path, version: str) -> Path:
+def _resolve_bundle_output(dist_root: Path, bundle_name: str) -> Path:
+    candidates = [
+        dist_root / bundle_name,
+        dist_root / f"{bundle_name}.exe",
+        dist_root / f"{bundle_name}.app",
+    ]
+    for candidate in candidates:
+        if candidate.exists():
+            return candidate
+    raise FileNotFoundError(
+        "PyInstaller output not found: "
+        + " / ".join(str(candidate) for candidate in candidates)
+    )
+
+
+def package_app(
+    app: str,
+    root: Path,
+    output_dir: Path,
+    version: str,
+    bundle_mode: str = "auto",
+) -> Path:
     if app not in APP_CONFIG:
         raise ValueError(f"Unsupported app: {app}")
+    if bundle_mode not in BUNDLE_MODES:
+        raise ValueError(f"Unsupported bundle mode: {bundle_mode}")
+    effective_bundle_mode = _resolve_bundle_mode(bundle_mode)
 
     config = APP_CONFIG[app]
     entry = root / config["entry"]
@@ -106,13 +137,18 @@ def package_app(app: str, root: Path, output_dir: Path, version: str) -> Path:
             )
         add_data.append((frontend_dist, "pywebview/frontend/dist"))
 
+    # macOS onefile + --windowed is deprecated (PyInstaller 7.0 will block it).
+    # Drop --windowed on macOS to produce a plain POSIX binary instead of .app bundle.
+    use_windowed = not sys.platform.startswith("darwin")
+
     cmd = [
         sys.executable,
         "-m",
         "PyInstaller",
         "--noconfirm",
         "--clean",
-        "--windowed",
+        *(["--windowed"] if use_windowed else []),
+        f"--{effective_bundle_mode}",
         "--name",
         bundle_name,
         "--paths",
@@ -134,16 +170,7 @@ def package_app(app: str, root: Path, output_dir: Path, version: str) -> Path:
     cmd.append(str(entry))
     subprocess.check_call(cmd, cwd=root)
 
-    bundle_dir = dist_root / bundle_name
-    bundle_file = dist_root / f"{bundle_name}.exe"
-    if bundle_dir.exists():
-        source = bundle_dir
-    elif bundle_file.exists():
-        source = bundle_file
-    else:
-        raise FileNotFoundError(
-            f"PyInstaller output not found for {app}: {bundle_dir} / {bundle_file}"
-        )
+    source = _resolve_bundle_output(dist_root, bundle_name)
 
     artifact_name = f"{app}-{_platform_label()}-{_arch_label()}-{version}.zip"
     artifact_path = output_dir / artifact_name
@@ -156,11 +183,23 @@ def main() -> int:
     parser.add_argument("--app", required=True, choices=sorted(APP_CONFIG))
     parser.add_argument("--version", default="dev")
     parser.add_argument("--output-dir", default="artifacts")
+    parser.add_argument(
+        "--bundle-mode",
+        choices=BUNDLE_MODES,
+        default="auto",
+        help="PyInstaller bundle mode (default: auto = onefile on all platforms).",
+    )
     args = parser.parse_args()
 
     root = Path(__file__).resolve().parent.parent
     output_dir = root / args.output_dir
-    artifact = package_app(args.app, root=root, output_dir=output_dir, version=args.version)
+    artifact = package_app(
+        args.app,
+        root=root,
+        output_dir=output_dir,
+        version=args.version,
+        bundle_mode=args.bundle_mode,
+    )
     print(artifact)
     return 0
 
