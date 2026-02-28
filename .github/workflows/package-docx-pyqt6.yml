@@ -6,6 +6,7 @@ on:
     branches: [main, dev]
     paths:
       - "docx-toolbox/core/**"
+      - "docx-toolbox/pyproject.toml"
       - "docx-toolbox/pyqt6/**"
       - ".github/workflows/package-docx-pyqt6.yml"
     tags:

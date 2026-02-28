@@ -6,6 +6,7 @@ on:
     branches: [main, dev]
     paths:
       - "docx-toolbox/core/**"
+      - "docx-toolbox/pyproject.toml"
       - "docx-toolbox/flet/**"
       - ".github/workflows/package-docx-flet.yml"
     tags:

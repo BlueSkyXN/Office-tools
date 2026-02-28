@@ -6,6 +6,7 @@ on:
     branches: [main, dev]
     paths:
       - "docx-toolbox/core/**"
+      - "docx-toolbox/pyproject.toml"
       - "docx-toolbox/tk/**"
       - ".github/workflows/package-docx-tk.yml"
     tags:

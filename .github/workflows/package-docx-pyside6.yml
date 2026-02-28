@@ -6,6 +6,7 @@ on:
     branches: [main, dev]
     paths:
       - "docx-toolbox/core/**"
+      - "docx-toolbox/pyproject.toml"
       - "docx-toolbox/pyside6/**"
       - ".github/workflows/package-docx-pyside6.yml"
     tags:
