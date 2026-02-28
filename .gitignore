@@ -106,3 +106,4 @@ pnpm-debug.log*
 logs/
 tmp/
 temp/
+/docx-toolbox/.venv-test
