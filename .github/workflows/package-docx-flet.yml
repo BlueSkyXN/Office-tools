@@ -44,7 +44,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        os: [macos-15, windows-2019]
+        os: [macos-15, windows-2022]
     defaults:
       run:
         working-directory: docx-toolbox
