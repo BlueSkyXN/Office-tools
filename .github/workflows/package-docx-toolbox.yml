@@ -60,9 +60,6 @@ jobs:
       matrix:
         os: [macos-14, windows-2022]
         app: [pyside6, tk, flet, pywebview, pyqt6]
-    if: >
-      (matrix.app != 'pyqt6' || (github.event_name == 'workflow_dispatch' && inputs.include_pyqt6)) &&
-      (github.event_name != 'workflow_dispatch' || inputs.app == 'all' || inputs.app == matrix.app)
     defaults:
       run:
         working-directory: docx-toolbox
@@ -70,12 +67,36 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
 
+      - name: Decide whether to build this matrix target
+        id: gate
+        shell: bash
+        run: |
+          should_build=true
+
+          if [[ "${{ matrix.app }}" == "pyqt6" ]]; then
+            if [[ "${{ github.event_name }}" != "workflow_dispatch" || "${{ inputs.include_pyqt6 }}" != "true" ]]; then
+              should_build=false
+            fi
+          fi
+
+          if [[ "${{ github.event_name }}" == "workflow_dispatch" && "${{ inputs.app }}" != "all" && "${{ inputs.app }}" != "${{ matrix.app }}" ]]; then
+            should_build=false
+          fi
+
+          echo "should_build=$should_build" >> "$GITHUB_OUTPUT"
+
+      - name: Skip non-target matrix entry
+        if: steps.gate.outputs.should_build != 'true'
+        run: echo "Skipping app=${{ matrix.app }} for this trigger configuration."
+
       - name: Setup Python
+        if: steps.gate.outputs.should_build == 'true'
         uses: actions/setup-python@v5
         with:
           python-version: "3.11"
 
       - name: Install dependencies for selected app
+        if: steps.gate.outputs.should_build == 'true'
         shell: bash
         run: |
           python -m pip install --upgrade pip
@@ -102,7 +123,7 @@ jobs:
           esac
 
       - name: Setup Node.js
-        if: matrix.app == 'pywebview'
+        if: steps.gate.outputs.should_build == 'true' && matrix.app == 'pywebview'
         uses: actions/setup-node@v4
         with:
           node-version: "20"
@@ -110,13 +131,14 @@ jobs:
           cache-dependency-path: docx-toolbox/pywebview/frontend/package-lock.json
 
       - name: Build pywebview frontend
-        if: matrix.app == 'pywebview'
+        if: steps.gate.outputs.should_build == 'true' && matrix.app == 'pywebview'
         working-directory: docx-toolbox/pywebview/frontend
         run: |
           npm ci
           npm run build
 
       - name: Resolve artifact version
+        if: steps.gate.outputs.should_build == 'true'
         id: version
         shell: bash
         run: |
@@ -127,6 +149,7 @@ jobs:
           fi
 
       - name: Package desktop app
+        if: steps.gate.outputs.should_build == 'true'
         run: |
           python scripts/package_app.py \
             --app "${{ matrix.app }}" \
@@ -134,6 +157,7 @@ jobs:
             --output-dir artifacts
 
       - name: Upload artifact
+        if: steps.gate.outputs.should_build == 'true'
         uses: actions/upload-artifact@v4
         with:
           name: ${{ matrix.app }}-${{ runner.os }}-${{ runner.arch }}-${{ steps.version.outputs.value }}
