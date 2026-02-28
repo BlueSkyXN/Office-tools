@@ -3,6 +3,11 @@ name: Package docx-toolbox (flet)
 on:
   workflow_dispatch:
   push:
+    branches: [main, dev]
+    paths:
+      - "docx-toolbox/core/**"
+      - "docx-toolbox/flet/**"
+      - ".github/workflows/package-docx-flet.yml"
     tags:
       - "v*"
 

@@ -2,6 +2,14 @@ name: Package docx-toolbox (pyqt6)
 
 on:
   workflow_dispatch:
+  push:
+    branches: [main, dev]
+    paths:
+      - "docx-toolbox/core/**"
+      - "docx-toolbox/pyqt6/**"
+      - ".github/workflows/package-docx-pyqt6.yml"
+    tags:
+      - "v*"
 
 permissions:
   contents: read

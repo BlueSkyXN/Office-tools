@@ -3,6 +3,11 @@ name: Package docx-toolbox (pywebview)
 on:
   workflow_dispatch:
   push:
+    branches: [main, dev]
+    paths:
+      - "docx-toolbox/core/**"
+      - "docx-toolbox/pywebview/**"
+      - ".github/workflows/package-docx-pywebview.yml"
     tags:
       - "v*"
 

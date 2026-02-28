@@ -3,6 +3,11 @@ name: Package docx-toolbox (tk)
 on:
   workflow_dispatch:
   push:
+    branches: [main, dev]
+    paths:
+      - "docx-toolbox/core/**"
+      - "docx-toolbox/tk/**"
+      - ".github/workflows/package-docx-tk.yml"
     tags:
       - "v*"
 

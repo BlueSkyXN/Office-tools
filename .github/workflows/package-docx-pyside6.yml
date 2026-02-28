@@ -3,6 +3,11 @@ name: Package docx-toolbox (pyside6)
 on:
   workflow_dispatch:
   push:
+    branches: [main, dev]
+    paths:
+      - "docx-toolbox/core/**"
+      - "docx-toolbox/pyside6/**"
+      - ".github/workflows/package-docx-pyside6.yml"
     tags:
       - "v*"
 
